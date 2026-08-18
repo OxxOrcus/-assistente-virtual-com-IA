@@ -24,10 +24,12 @@ pip install streamlit pandas requests
 # 2. Garantir que Ollama está rodando
 ollama serve
 
-# 3. Rodar o app
-streamlit run .\src\app.py
+# 3. Rodar o app (a partir da raiz do repositório)
+streamlit run src/app.py
 ```
 
 ## Evidência de Execução
 
-<img width="1920" height="1107" alt="image" src="https://github.com/user-attachments/assets/60feed79-38a6-43dc-b23a-9dd007e34c1d" />
+A interface sobe normalmente com Streamlit (título, contexto e campo de chat funcionando). Para respostas reais do Bússola, é necessário ter o Ollama rodando localmente com o modelo `gpt-oss` baixado — sem isso, o app mostra uma mensagem de erro amigável em vez de travar.
+
+![Bússola rodando no Streamlit](../assets/app-screenshot.png)

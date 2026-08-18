@@ -2,27 +2,27 @@
 
 > [!TIP]
 > **Prompt usado para esta etapa:**
-> 
-> Organize a base de conhecimento do agente "Edu" usando os 4 arquivos da pasta `data/` (em anexo). Explique pra que serve cada arquivo e monte um exemplo de contexto formatado que será enviado pro LLM. Preencha o template abaixo.
+>
+> Organize a base de conhecimento do agente "Bússola" usando os 4 arquivos da pasta `data/` (em anexo). Explique pra que serve cada arquivo e monte um exemplo de contexto formatado que será enviado pro LLM. Preencha o template abaixo.
 >
 > [cole ou anexe o template `02-base-conhecimento.md` pra contexto]
 
 ## Dados Utilizados
 
-| Arquivo | Formato | Para que serve no Edu? |
+| Arquivo | Formato | Para que serve no Bússola? |
 |---------|---------|---------------------|
-| `historico_atendimento.csv` | CSV | Contextualizar interações anteriores, ou seja, dar continuidade ao atendimento de forma mais eficiente. |
-| `perfil_investidor.json` | JSON | Personalizar as explicações sobre as dúvidas e necessidades de aprendizado do cliente. |
-| `produtos_financeiros.json` | JSON | Conhecer os produtos disponíveis para que eles possam ser ensinados ao cliente. |
-| `transacoes.csv` | CSV | Analisar padrão de gastos do cliente e usar essas informações de forma didática. |
+| `perfil_nomade.json` | JSON | Personalizar comparações e recomendações com base no orçamento, preferências e objetivo atual da pessoa usuária. |
+| `historico_viagens.csv` | CSV | Contextualizar destinos onde a pessoa já morou, quanto gastou e como avaliou cada experiência. |
+| `historico_atendimento.csv` | CSV | Dar continuidade a dúvidas anteriores, evitando repetir do zero um assunto já discutido. |
+| `destinos_nomades.json` | JSON | Base principal de destinos "nômade-friendly", com custo de vida, internet, visto, segurança e comunidade — é daqui que o agente tira quase todas as respostas sobre lugares. |
 
 ---
 
 ## Adaptações nos Dados
 
-> Você modificou ou expandiu os dados mockados? Descreva aqui.
+> Você modificou ou expandiu os dados mockados?
 
-O produto Fundo Imobiliário (FII) substituiu o Fundo Multimercado, pois pessoalmente me sinto mais confiante em usar apenas produtos financeiros que eu conheço. Assim, poderei validar as respostas do Edu de forma mais assertiva.
+Sim. O tema original do repositório de exemplo é um educador financeiro; para o meu agente, recriei os quatro arquivos do zero com um tema de nomadismo digital. Mantive o mesmo número de arquivos e um formato parecido (um perfil de usuário, dois históricos e uma base "de produtos"), mas troquei todo o conteúdo: em vez de produtos financeiros, `destinos_nomades.json` traz 7 cidades com custo de vida, internet, visto, segurança e comunidade. Deixei de propósito uma cidade do interesse da pessoa usuária (Cidade do Cabo) fora da base, para poder testar se o agente admite quando não tem dados suficientes em vez de inventar.
 
 ---
 
@@ -31,112 +31,74 @@ O produto Fundo Imobiliário (FII) substituiu o Fundo Multimercado, pois pessoal
 ### Como os dados são carregados?
 > Descreva como seu agente acessa a base de conhecimento.
 
-Existem duas possibilidades, injetar os dados diretamente no prompt (Ctrl + C, Ctrl + V) ou carregar os arquivos via código, como no exemplo abaixo:
+Os arquivos são carregados no início da sessão, direto do disco, como no exemplo abaixo:
 
 ```python
 import pandas as pd
 import json
 
-perfil = json.load(open('./data/perfil_investidor.json'))
-transacoes = pd.read_csv('./data/transacoes.csv')
+perfil = json.load(open('./data/perfil_nomade.json'))
+viagens = pd.read_csv('./data/historico_viagens.csv')
 historico = pd.read_csv('./data/historico_atendimento.csv')
-produtos = json.load(open('./data/produtos_financeiros.json'))
+destinos = json.load(open('./data/destinos_nomades.json'))
 ```
 
 ### Como os dados são usados no prompt?
 > Os dados vão no system prompt? São consultados dinamicamente?
 
-Para simplificar, podemos simplesmente "injetar" os dados em nosso prompt, agarntindo que o Agente tenha o melhor contexto possível. Lembrando que, em soluções mais robustas, o ideal é que essas informaçoes sejam carregadas dinamicamente para que possamos ganhar flexibilidade.
+Para manter o protótipo simples, os quatro arquivos são injetados inteiros no prompt a cada pergunta, garantindo que o agente sempre tenha o contexto completo disponível. Em uma versão mais robusta, o ideal seria consultar apenas os destinos relevantes para a pergunta (busca/RAG), reduzindo o consumo de tokens.
 
 ```text
-DADOS DO CLIENTE E PERFIL (data/perfil_investidor.json):
+PERFIL DA PESSOA USUÁRIA (data/perfil_nomade.json):
 {
-  "nome": "João Silva",
-  "idade": 32,
-  "profissao": "Analista de Sistemas",
-  "renda_mensal": 5000.00,
-  "perfil_investidor": "moderado",
-  "objetivo_principal": "Construir reserva de emergência",
-  "patrimonio_total": 15000.00,
-  "reserva_emergencia_atual": 10000.00,
-  "aceita_risco": false,
-  "metas": [
-    {
-      "meta": "Completar reserva de emergência",
-      "valor_necessario": 15000.00,
-      "prazo": "2026-06"
-    },
-    {
-      "meta": "Entrada do apartamento",
-      "valor_necessario": 50000.00,
-      "prazo": "2027-12"
-    }
-  ]
+  "nome": "Marina Costa",
+  "idade": 29,
+  "profissao": "Designer UX Freelancer",
+  "renda_mensal_usd": 3200.00,
+  "perfil_nomade": "intermediario",
+  "objetivo_principal": "Escolher o próximo destino para os próximos 2-3 meses, equilibrando custo de vida, comunidade e fuso horário de trabalho",
+  "orcamento_mensal_usd": 1500.00,
+  "paises_visitados_como_nomade": 6,
+  "preferencias": {
+    "clima": "ameno a quente, sem umidade excessiva",
+    "importancia_internet": "alta (faz videochamadas quase todo dia)",
+    "importancia_comunidade": "alta",
+    "fuso_horario_trabalho": "precisa de sobreposição com Brasil (UTC-3) e, se possível, Europa (UTC+0/+1)"
+  },
+  "destinos_ja_visitados": ["Lisboa", "Medellín", "Cidade do México", "Bali", "Chiang Mai", "Tbilisi"],
+  "destinos_interesse_futuro": ["Buenos Aires", "Cidade do Cabo"]
 }
 
-TRANSACOES DO CLIENTE (data/transacoes.csv):
-data,descricao,categoria,valor,tipo
-2025-10-01,Salário,receita,5000.00,entrada
-2025-10-02,Aluguel,moradia,1200.00,saida
-2025-10-03,Supermercado,alimentacao,450.00,saida
-2025-10-05,Netflix,lazer,55.90,saida
-2025-10-07,Farmácia,saude,89.00,saida
-2025-10-10,Restaurante,alimentacao,120.00,saida
-2025-10-12,Uber,transporte,45.00,saida
-2025-10-15,Conta de Luz,moradia,180.00,saida
-2025-10-20,Academia,saude,99.00,saida
-2025-10-25,Combustível,transporte,250.00,saida
+HISTORICO DE VIAGENS (data/historico_viagens.csv):
+data_inicio data_fim   cidade           pais      custo_total_usd categoria_gasto_principal avaliacao
+2025-09-01  2025-10-15 Lisboa           Portugal  3200.00          hospedagem                5
+2025-10-20  2025-12-05 Medellín         Colômbia  1800.00          alimentacao               4
+2025-12-10  2026-01-25 Cidade do México México    2400.00          hospedagem                4
+2026-02-01  2026-03-20 Bali             Indonésia 2000.00          coworking                 5
+2026-03-25  2026-05-10 Chiang Mai       Tailândia 1500.00          hospedagem                5
+2026-05-15  2026-07-01 Tbilisi          Geórgia   1350.00          transporte                4
 
-HISTORICO DE ATENDIMENTO DO CLIENTE (data/historico_atendimento.csv):
-data,canal,tema,resumo,resolvido
-2025-09-15,chat,CDB,Cliente perguntou sobre rentabilidade e prazos,sim
-2025-09-22,telefone,Problema no app,Erro ao visualizar extrato foi corrigido,sim
-2025-10-01,chat,Tesouro Selic,Cliente pediu explicação sobre o funcionamento do Tesouro Direto,sim
-2025-10-12,chat,Metas financeiras,Cliente acompanhou o progresso da reserva de emergência,sim
-2025-10-25,email,Atualização cadastral,Cliente atualizou e-mail e telefone,sim
+HISTORICO DE ATENDIMENTO (data/historico_atendimento.csv):
+data       canal  tema           resumo                                                                     resolvido
+2025-10-10 chat   Visto          Dúvida sobre requisitos do visto D8 em Portugal                            sim
+2025-12-01 chat   Internet       Pergunta sobre estabilidade de internet em Medellín para chamadas de vídeo  sim
+2026-02-05 email  Comunidade     Buscou grupos e eventos de nômades digitais em Bali                         sim
+2026-04-15 chat   Custo de vida  Comparação de custo entre Chiang Mai e Tbilisi                               sim
+2026-07-20 chat   Fuso horário   Dúvida sobre sobreposição de horário com clientes no Brasil na Ásia          sim
 
-PRODUTOS DISPONIVEIS PARA ENSINO (data/produtos_financeiros.json):
+BASE DE DESTINOS (data/destinos_nomades.json):
 [
   {
-    "nome": "Tesouro Selic",
-    "categoria": "renda_fixa",
-    "risco": "baixo",
-    "rentabilidade": "100% da Selic",
-    "aporte_minimo": 30.00,
-    "indicado_para": "Reserva de emergência e iniciantes"
+    "cidade": "Lisboa", "pais": "Portugal", "custo_vida_mensal_usd": 1800,
+    "internet_media_mbps": 150, "fuso_horario": "UTC+0", "visto_nomade": "D8 - Visto Nômade Digital",
+    "indice_seguranca": "alto", "comunidade_nomades": "grande e muito ativa"
   },
   {
-    "nome": "CDB Liquidez Diária",
-    "categoria": "renda_fixa",
-    "risco": "baixo",
-    "rentabilidade": "102% do CDI",
-    "aporte_minimo": 100.00,
-    "indicado_para": "Quem busca segurança com rendimento diário"
+    "cidade": "Medellín", "pais": "Colômbia", "custo_vida_mensal_usd": 1200,
+    "internet_media_mbps": 100, "fuso_horario": "UTC-5", "visto_nomade": "Visto V - Nómada Digital",
+    "indice_seguranca": "medio", "comunidade_nomades": "grande e ativa"
   },
-  {
-    "nome": "LCI/LCA",
-    "categoria": "renda_fixa",
-    "risco": "baixo",
-    "rentabilidade": "95% do CDI",
-    "aporte_minimo": 1000.00,
-    "indicado_para": "Quem pode esperar 90 dias (isento de IR)"
-  },
-  {
-    "nome": "Fundo Imobiliário (FII)",
-    "categoria": "fundo",
-    "risco": "medio",
-    "rentabilidade": "Dividend Yield (DY) costuma ficar entre 6% a 12% ao ano",
-    "aporte_minimo": 100.00,
-    "indicado_para": "Perfil moderado que busca diversificação e renda recorrente mensal"
-  },
-  {
-    "nome": "Fundo de Ações",
-    "categoria": "fundo",
-    "risco": "alto",
-    "rentabilidade": "Variável",
-    "aporte_minimo": 100.00,
-    "indicado_para": "Perfil arrojado com foco no longo prazo"
-  }
+  "... (mais 5 destinos: Cidade do México, Bali, Chiang Mai, Tbilisi e Buenos Aires)"
 ]
 ```
 
@@ -146,27 +108,23 @@ PRODUTOS DISPONIVEIS PARA ENSINO (data/produtos_financeiros.json):
 
 > Mostre um exemplo de como os dados são formatados para o agente.
 
-O exemplo de contexto montado abaixo, se baiseia nos dados originais da base de conhecimento, mas os sintetiza deixando apenas as informações mais relevantes, otimizando assim o consumo de tokens. Entretanto, vale lembrar que mais importante do que economizar tokens, é ter todas as informações relevantes disponíveis em seu contexto.
+O exemplo abaixo sintetiza os dados originais, mantendo só o que é mais relevante para uma pergunta típica, o que ajuda a economizar tokens. Ainda assim, o mais importante continua sendo garantir que todas as informações relevantes estejam disponíveis no contexto.
 
 ```
-DADOS DO CLIENTE:
-- Nome: João Silva
-- Perfil: Moderado
-- Objetivo: Construir reserva de emergência
-- Reserva atual: R$ 10.000 (meta: R$ 15.000)
+PERFIL:
+- Nome: Marina Costa
+- Perfil: Intermediário | Orçamento: US$ 1.500/mês
+- Objetivo: escolher o próximo destino (2-3 meses), priorizando internet, comunidade e fuso com Brasil/Europa
+- Já visitou: Lisboa, Medellín, Cidade do México, Bali, Chiang Mai, Tbilisi
 
-RESUMO DE GASTOS:
-- Moradia: R$ 1.380
-- Alimentação: R$ 570
-- Transporte: R$ 295
-- Saúde: R$ 188
-- Lazer: R$ 55,90
-- Total de saídas: R$ 2.488,90
+DESTINO MAIS BARATO JÁ VISITADO: Tbilisi (US$ 1.350 no total)
 
-PRODUTOS DISPONÍVEIS PARA EXPLICAR:
-- Tesouro Selic (risco baixo)
-- CDB Liquidez Diária (risco baixo)
-- LCI/LCA (risco baixo)
-- Fundo Imobiliário - FII (risco médio)
-- Fundo de Ações (risco alto)
+DESTINOS DISPONÍVEIS PARA COMPARAR:
+- Lisboa (US$1.800/mês, internet 150 Mbps, UTC+0, visto D8, comunidade grande)
+- Medellín (US$1.200/mês, internet 100 Mbps, UTC-5, visto V, comunidade grande)
+- Cidade do México (US$1.400/mês, internet 90 Mbps, UTC-6, sem visto específico)
+- Bali (US$1.300/mês, internet 40 Mbps, UTC+8, visto E33G/Second Home)
+- Chiang Mai (US$1.000/mês, internet 80 Mbps, UTC+7, visto DTV)
+- Tbilisi (US$900/mês, internet 60 Mbps, UTC+4, isenção de visto)
+- Buenos Aires (US$1.000/mês, internet 70 Mbps, UTC-3, Visa Nómada Digital)
 ```
