@@ -1,0 +1,7 @@
+data_inicio,data_fim,cidade,pais,custo_total_usd,categoria_gasto_principal,avaliacao
+2025-09-01,2025-10-15,Lisboa,Portugal,3200.00,hospedagem,5
+2025-10-20,2025-12-05,Medellín,Colômbia,1800.00,alimentacao,4
+2025-12-10,2026-01-25,Cidade do México,México,2400.00,hospedagem,4
+2026-02-01,2026-03-20,Bali,Indonésia,2000.00,coworking,5
+2026-03-25,2026-05-10,Chiang Mai,Tailândia,1500.00,hospedagem,5
+2026-05-15,2026-07-01,Tbilisi,Geórgia,1350.00,transporte,4

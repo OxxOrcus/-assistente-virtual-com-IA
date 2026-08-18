@@ -1,0 +1,18 @@
+{
+  "nome": "Marina Costa",
+  "idade": 29,
+  "profissao": "Designer UX Freelancer",
+  "renda_mensal_usd": 3200.00,
+  "perfil_nomade": "intermediario",
+  "objetivo_principal": "Escolher o próximo destino para os próximos 2-3 meses, equilibrando custo de vida, comunidade e fuso horário de trabalho",
+  "orcamento_mensal_usd": 1500.00,
+  "paises_visitados_como_nomade": 6,
+  "preferencias": {
+    "clima": "ameno a quente, sem umidade excessiva",
+    "importancia_internet": "alta (faz videochamadas quase todo dia)",
+    "importancia_comunidade": "alta",
+    "fuso_horario_trabalho": "precisa de sobreposição com Brasil (UTC-3) e, se possível, Europa (UTC+0/+1)"
+  },
+  "destinos_ja_visitados": ["Lisboa", "Medellín", "Cidade do México", "Bali", "Chiang Mai", "Tbilisi"],
+  "destinos_interesse_futuro": ["Buenos Aires", "Cidade do Cabo"]
+}
